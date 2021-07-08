@@ -1,4 +1,5 @@
 include "globals.mzn";
+include "diffn.mzn";
 include "data.dzn";
 
 %width of big rectangle
@@ -10,10 +11,11 @@ int: num_circuits;
 set of int: CIRCUIT_DIM = 1..num_circuits;
 %dimensions of small-circuits that we want to place in big rectangle
 array[CIRCUIT_DIM, 1..2] of int: circuits;
+array[CIRCUIT_DIM] of int: circuitX;
+array[CIRCUIT_DIM] of int: circuitY;
 
 % Lower bound for the height
 int: min_height = num_circuits;
-
 % Upper bound for the area
 int: max_area   = width * min_height;
 % Upper bound for the height
@@ -31,15 +33,14 @@ var min_height..max_height: Height;
 
 
 %non-overlap constraint 
-constraint
-    forall( i, j in CIRCUIT_DIM where i < j ) (
-        X[i] + circuits[i,1] <= X[j] 
-    \/  X[j] + circuits[j,1] <= X[i] 
-    \/  Y[i] + circuits[i,2] <= Y[j]
-    \/  Y[j] + circuits[j,2] <= Y[i]
-    );
+% one overlap is enough 
+% this or condition is very inefficient. 
+
+constraint diffn(X,Y,circuitX,circuitY);
+
               
-%fitted CIRCUIT_DIM must not exceed the width also at the same moment for each row if we sum the column it should not exceed the height 
+%fitted CIRCUIT_DIM must not exceed the width 
+%also, at the same moment for each row if we sum the column it should not exceed the height 
 constraint
         forall( i in CIRCUIT_DIM ) (
             X[i] + circuits[i,1]  <= width
